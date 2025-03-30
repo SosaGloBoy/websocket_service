@@ -1,30 +1,22 @@
 package main
 
 import (
-	"log/slog"
+	"log"
 	"net/http"
-	"os"
-
-	"github.com/gin-gonic/gin"
 	"websocket_service/internal/handlers"
-	"websocket_service/internal/routes"
-	"websocket_service/internal/service"
 )
 
 func main() {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	webSocketService := service.NewWebSocketService(logger)
+	labServiceURL := "http://localhost:8083"
 
-	webSocketHandler := handlers.NewWebSocketHandler(webSocketService)
+	websocketHandler := handlers.NewWebSocketHandler(labServiceURL)
 
-	router := gin.Default()
+	http.HandleFunc("/ws", websocketHandler.HandleConnections)
 
-	routes.SetupWebSocketRoutes(router, webSocketHandler)
-
-	port := "8085"
-	logger.Info("WebSocket server is running", slog.String("port", port))
-	if err := http.ListenAndServe(":"+port, router); err != nil {
-		logger.Error("Error while starting WebSocket", slog.Any("error", err))
+	log.Println("WebSocket server started on :8087")
+	err := http.ListenAndServe(":8087", nil)
+	if err != nil {
+		log.Fatal("Error starting server: ", err)
 	}
 }
